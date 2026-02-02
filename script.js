@@ -69,6 +69,26 @@ const motorKrediKarti = {
   },
 };
 
+const telefonEldenTaksitli = {
+  pesinatYuzdesi: 0.4,
+  oranlar: {
+    "1": 1.1,
+    "2": 1.18,
+    "3": 1.25,
+    "4": 1.32,
+    "5": 1.39,
+    "6": 1.46,
+    "7": 1.53,
+    "8": 1.59,
+    "9": 1.65,
+    "10": 1.71,
+    "11": 1.77,
+    "12": 1.83,
+    "13": 1.89,
+    "14": 1.95,
+  },
+};
+
 const calculate = ({
   priceInput,
   downInput,
@@ -124,15 +144,30 @@ const calculate = ({
 
   setResult(
     resultEl,
-    `${label} sonucu: Kalan tutar ${formatCurrency(remaining)}, \n` +
-      `Taksitli toplam ${formatCurrency(totalInstallment)}, \n` +
-      `Aylık taksit ${formatCurrency(monthly)}.`
+    `<div class="result-card">
+      <div class="result-title">${label} sonucu</div>
+      <div class="result-grid">
+        <div class="result-item">
+          <span>Kalan Tutar</span>
+          <strong>${formatCurrency(remaining)}</strong>
+        </div>
+        <div class="result-item">
+          <span>Taksitli Toplam</span>
+          <strong>${formatCurrency(totalInstallment)}</strong>
+        </div>
+        <div class="result-item">
+          <span>Aylık Taksit</span>
+          <strong>${formatCurrency(monthly)}</strong>
+        </div>
+      </div>
+    </div>`
   );
 };
 
 const init = () => {
   const eldenTerm = document.getElementById("elden-term");
   const krediTerm = document.getElementById("kredi-term");
+  const telefonTerm = document.getElementById("telefon-term");
 
   modal.close.addEventListener("click", closeModal);
   modal.overlay.addEventListener("click", closeModal);
@@ -156,6 +191,17 @@ const init = () => {
       resultEl: document.getElementById("kredi-result"),
       config: motorKrediKarti,
       label: "Kredi kartı",
+    })
+  );
+
+  document.getElementById("telefon-calc").addEventListener("click", () =>
+    calculate({
+      priceInput: document.getElementById("telefon-price"),
+      downInput: document.getElementById("telefon-down"),
+      termSelect: telefonTerm,
+      resultEl: document.getElementById("telefon-result"),
+      config: telefonEldenTaksitli,
+      label: "Telefon elden taksitli",
     })
   );
 };
