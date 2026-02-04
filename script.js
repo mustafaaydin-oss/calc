@@ -2,12 +2,52 @@ const formatCurrency = (value) =>
   new Intl.NumberFormat("tr-TR", {
     style: "currency",
     currency: "TRY",
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
 
+const formatNumber = (value) => {
+  if (!value) return "";
+  const num = parseFloat(value.toString().replace(/\./g, "").replace(",", "."));
+  if (isNaN(num)) return "";
+  return new Intl.NumberFormat("tr-TR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(num);
+};
+
 const parseNumber = (value) => {
-  const parsed = Number(value);
+  if (!value) return 0;
+  // Türkçe formatı çözümle: noktayı kaldır, virgülü noktaya çevir
+  const cleaned = value.toString().replace(/\./g, "").replace(",", ".");
+  const parsed = Number(cleaned);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const addInputFormatting = (input) => {
+  input.addEventListener("input", (e) => {
+    const cursorPos = e.target.selectionStart;
+    const oldValue = e.target.value;
+    const oldLength = oldValue.length;
+    
+    // Sadece sayı, virgül ve noktaya izin ver
+    let cleaned = oldValue.replace(/[^0-9,]/g, "");
+    
+    // Birden fazla virgül varsa sadece ilkini tut
+    const parts = cleaned.split(",");
+    if (parts.length > 2) {
+      cleaned = parts[0] + "," + parts.slice(1).join("");
+    }
+    
+    // Formatla
+    const formatted = formatNumber(cleaned);
+    e.target.value = formatted;
+    
+    // Cursor pozisyonunu ayarla
+    const newLength = formatted.length;
+    const diff = newLength - oldLength;
+    e.target.setSelectionRange(cursorPos + diff, cursorPos + diff);
+  });
 };
 
 const modal = {
@@ -139,7 +179,8 @@ const calculate = ({
   }
 
   const remaining = Math.max(price - down, 0);
-  const totalInstallment = remaining * rate;
+  // Oran 1'den küçükse (kredi kartı) bölme, büyükse (elden taksit) çarpma işlemi
+  const totalInstallment = rate < 1 ? remaining / rate : remaining * rate;
   const monthly = totalInstallment / Number(term);
   const grandTotal = down + totalInstallment;
 
@@ -169,6 +210,18 @@ const init = () => {
   const eldenTerm = document.getElementById("elden-term");
   const krediTerm = document.getElementById("kredi-term");
   const telefonTerm = document.getElementById("telefon-term");
+
+  // Input alanlarına formatlama ekle
+  const inputs = [
+    document.getElementById("elden-price"),
+    document.getElementById("elden-down"),
+    document.getElementById("kredi-price"),
+    document.getElementById("kredi-down"),
+    document.getElementById("telefon-price"),
+    document.getElementById("telefon-down"),
+  ];
+  
+  inputs.forEach(input => addInputFormatting(input));
 
   modal.close.addEventListener("click", closeModal);
   modal.overlay.addEventListener("click", closeModal);
